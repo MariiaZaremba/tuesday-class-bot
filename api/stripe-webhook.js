@@ -23,18 +23,22 @@ export default async function handler(req,res) {
 
     if(event.type==='checkout.session.completed') {
       const s=event.data.object;
-      const bookingId=s.metadata?.booking_id;
-      if(bookingId) {
-        const { data:b,error }=await supabase.from('bookings').update({
-          status:'paid', payment_status:'paid', stripe_payment_intent_id:String(s.payment_intent||''), expires_at:null
-        }).eq('id',bookingId).select('*,classes(*)').single();
-        if(error) throw error;
-        const chatId=s.metadata?.telegram_chat_id;
-        if(chatId) await sendMessage(chatId,
-          `✅ <b>You’re booked!</b>\n\n${classLabel(b.classes.starts_at)}\n📍 ${b.classes.location}\n\nSee you there 💛`,
-          {reply_markup:{inline_keyboard:[[{text:'📅 My Classes',callback_data:'mine'}],[{text:'🏋️ Book another class',callback_data:'book'}]]}}
-        );
-      }
+      let bookingId = s.metadata?.booking_id;
+
+if (!bookingId && s.metadata?.user_id && s.metadata?.class_id) {
+  const { data: fallbackBooking, error: fallbackError } = await supabase
+    .from('bookings')
+    .select('id')
+    .eq('user_id', s.metadata.user_id)
+    .eq('class_id', s.metadata.class_id)
+    .maybeSingle();
+
+  if (fallbackError) throw fallbackError;
+
+  bookingId = fallbackBooking?.id;
+}
+
+if (bookingId) {
     }
 
     if(event.type==='checkout.session.expired') {
