@@ -160,6 +160,11 @@ async function createCheckout(chatId, user, classId) {
       p_class_id: classId
     }
   );
+  const bookingRow = Array.isArray(booking) ? booking[0] : booking;
+
+if (!bookingRow?.id) {
+  throw new Error('Booking was created but booking ID is missing');
+}
 
   if (reserveError) {
     const message = reserveError.message || '';
@@ -174,7 +179,7 @@ async function createCheckout(chatId, user, classId) {
     throw reserveError;
   }
 
-  if (booking.status === 'paid') {
+  if (bookingRow.status === 'paid') {
     return sendMessage(
       chatId,
       'You’re already booked for this class ✅',
@@ -209,7 +214,7 @@ async function createCheckout(chatId, user, classId) {
     ],
 
     metadata: {
-      booking_id: booking.id,
+      booking_id: bookingRow.id,
       user_id: user.id,
       class_id: c.id,
       telegram_chat_id: String(chatId)
@@ -226,7 +231,7 @@ async function createCheckout(chatId, user, classId) {
     .update({
       stripe_checkout_session_id: session.id
     })
-    .eq('id', booking.id);
+    .eq('id', bookingRow.id);
 
   await sendMessage(
     chatId,
