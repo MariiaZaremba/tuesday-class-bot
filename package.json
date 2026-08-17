@@ -1,0 +1,16 @@
+{
+  "name": "tuesday-class-bot",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vercel dev"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.0",
+    "stripe": "^18.0.0"
+  },
+  "devDependencies": {
+    "vercel": "^41.0.0"
+  }
+}
